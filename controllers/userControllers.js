@@ -72,4 +72,4 @@ const getAllUsers = async (req, res) =>{
     }
 }
 
-module.exports = {getAllUsers, loginUsers}
+module.exports = {getAllUsers, loginUsers, addNewUser}
