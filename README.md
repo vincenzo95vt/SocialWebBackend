@@ -1,1 +1,1 @@
-Backend part from my personal projecto about FavList Social Web
+Backend part from my personal project about FavList Social Web
