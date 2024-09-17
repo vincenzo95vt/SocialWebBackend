@@ -1,6 +1,6 @@
 const jwt = require("jsonwebtoken")
 
-const verifyToken = (res, res, next) => {
+const verifyToken = (req, res, next) => {
     const token = req.header("auth-token")
     if(!token) return res.status(400).send("Access denied")
     try {

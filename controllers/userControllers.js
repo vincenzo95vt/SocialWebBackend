@@ -57,11 +57,11 @@ const loginUsers = async (req, res) => {
 
 const addNewUser = async (req, res) => {
     try {
-        const {username, name, lastname, email, password, description, age, genre} = req.body
+        const {userName, name, lastName, email, password, description, age, genre} = req.body
         const user =  new Users({
-            username: username,
+            userName: userName,
             name: name,
-            lastname: lastname,
+            lastName: lastName,
             email: email,
             password: bcrypt.hash(password, 10),
             description: description,
