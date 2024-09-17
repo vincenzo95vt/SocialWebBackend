@@ -1,6 +1,35 @@
 const Users = require("../models/userSchema")
 const bcrypt = require("bcrypt")
 
+const updateUserData = async (req, res) =>{
+    try {
+        const userId = req.payload.userId
+        !idUser && res.status(400).json({
+            message: "User not found" 
+        }) 
+       const {username, name, lastname, email,  description, age, genre, myLists} = req.body
+        const updatedUser = await Users.findByIdAndUpdate(idUser, {
+            userName: username,
+            name: name,
+            lastname:lastname,
+            email: email,
+            description:description,
+            age:age,
+            genre:genre,
+            myLists:myLists
+        })
+       res.status(200).json({
+        message: "User updated successfully",
+        data: updatedUser
+       })
+    } catch (error) {
+        res.status(400).json({
+            message: "Error login users",
+            error: error.message
+        })
+    }
+}
+
 
 const loginUsers = async (req, res) => {
     try {
@@ -72,4 +101,4 @@ const getAllUsers = async (req, res) =>{
     }
 }
 
-module.exports = {getAllUsers, loginUsers, addNewUser}
+module.exports = {getAllUsers, loginUsers, addNewUser, updateUserData}
