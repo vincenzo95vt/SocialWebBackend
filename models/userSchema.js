@@ -22,6 +22,7 @@ const userSchema = new mongoose.Schema({
     description:{ 
         type: String,
         require: true,
+        default: ""
     },
     age:{ 
         type: Number,
@@ -47,7 +48,7 @@ const userSchema = new mongoose.Schema({
     }],
     genre:{
         type: String,
-        enum: ["Hombre", "Mujer"],
+        enum: ["Male", "Female"],
         require: true
     },
     role:{ 
@@ -57,7 +58,7 @@ const userSchema = new mongoose.Schema({
     },
     privacy:{ 
         type: String,
-        require: true,
+        require: false,
         enum: ["private", "public"],
         default: "public"
     },

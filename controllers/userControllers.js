@@ -19,11 +19,13 @@ const updateUserData = async (req, res) =>{
             myLists:myLists
         })
        res.status(200).json({
+        status:200, 
         message: "User updated successfully",
         data: updatedUser
        })
     } catch (error) {
         res.status(400).json({
+            status:400, 
             message: "Error login users",
             error: error.message
         })
@@ -40,15 +42,18 @@ const loginUsers = async (req, res) => {
         if(user){
             const validatePassword = await bcrypt.compare(password, user.password)
             validatePassword ? res.status(200).json({
+                status:400,
                 message: "Login Successfull",
             })
             :
             res.status(400).json({
+                status: 400,
                 message: "email or password invalid, please try again with another",
             })
         }
     } catch (error) {
         res.status(400).json({
+            status: 400,
             message: "Error login users",
             error: error.message
         })
@@ -57,26 +62,34 @@ const loginUsers = async (req, res) => {
 
 const addNewUser = async (req, res) => {
     try {
-        const {userName, name, lastName, email, password, description, age, genre} = req.body
+        const {userName, name, lastName, email, password, age, genre} = req.body
         const user =  new Users({
             userName: userName,
             name: name,
             lastName: lastName,
             email: email,
-            password: bcrypt.hash(password, 10),
-            description: description,
+            password: await bcrypt.hash(password, 10),
             age: age,
             genre: genre
         })
     await user.save()
     res.status(200).json({
+        status:200,
         message:"User created succesfully"
     })
     } catch (error) {
-        res.stauts(400).json({
-            message: "Error creating user",
-            error: error.message
-        })
+        if(error.code === 11000){
+            res.status(400).json({
+                status: 400,
+                message:"Email already in use, please try again with another",
+            })
+        }else{
+            res.status(400).json({
+                status: 400,
+                message: "Error creating user",
+                error: error.message
+            })
+        }
     }
     
 }
