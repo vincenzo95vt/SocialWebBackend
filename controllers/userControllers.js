@@ -1,5 +1,6 @@
 const Users = require("../models/userSchema")
 const bcrypt = require("bcrypt")
+const { generateToken } = require("../utils/utils")
 
 const updateUserData = async (req, res) =>{
     try {
@@ -7,11 +8,11 @@ const updateUserData = async (req, res) =>{
         !idUser && res.status(400).json({
             message: "User not found" 
         }) 
-       const {username, name, lastname, email,  description, age, genre, myLists} = req.body
+       const {userName, name, lastName, email,  description, age, genre, myLists} = req.body
         const updatedUser = await Users.findByIdAndUpdate(idUser, {
-            userName: username,
+            userName: userName,
             name: name,
-            lastname:lastname,
+            lastName:lastName,
             email: email,
             description:description,
             age:age,
@@ -41,14 +42,38 @@ const loginUsers = async (req, res) => {
         })
         if(user){
             const validatePassword = await bcrypt.compare(password, user.password)
-            validatePassword ? res.status(200).json({
-                status:400,
-                message: "Login Successfull",
-            })
-            :
-            res.status(400).json({
-                status: 400,
-                message: "email or password invalid, please try again with another",
+            if(validatePassword){
+                const payload = {
+                    userId: user._id,
+                    userName: user.userName,
+                    name: user.name,
+                    lastName: user.lastName,
+                    age: user.age,
+                    genre: user.genre,
+                    imgProfile: user.imgProfile,
+                    description: user.description
+                }
+                const token = generateToken(payload, false)
+                const token_refresh = generateToken(payload, true)
+                return res.status(200).json({
+                    status: 200,
+                    message: "User logged successfully",
+                    data: {
+                        token: token,
+                        token_refresh: token_refresh,
+                        userData: payload
+                        }
+                })
+            }else if (!validatePassword){
+                return res.status(401).json({
+                    status: 401,
+                    message: "Email and/or password don´t match"
+                })
+            }
+        }else{
+            return res.status(401).json({
+                status: 401,
+                message: "Email and/or password don´t match"
             })
         }
     } catch (error) {
