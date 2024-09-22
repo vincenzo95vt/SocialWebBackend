@@ -12,6 +12,8 @@ const db = mongoose.connection
 
 
 const userRouters = require("./routers/userRouters")
+const postRouters = require("./routers/postRouters")
+
 
 db.on("error", (error) => {
     console.error("Error to connect")
@@ -26,7 +28,7 @@ db.on("disconnected", (error) => {
 })
 
 app.use("/users", userRouters)
-
+app.use("/posts", postRouters)
 app.listen(PORT, () =>{
     console.log(`Server running at http://localhost:${PORT}`)
 })
