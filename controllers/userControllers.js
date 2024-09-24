@@ -1,6 +1,8 @@
 const Users = require("../models/userSchema")
 const bcrypt = require("bcrypt")
+const jwt = require("jsonwebtoken")
 const { generateToken } = require("../utils/utils")
+const { error } = require("console")
 
 const updateUserData = async (req, res) =>{
     try {
@@ -85,6 +87,64 @@ const loginUsers = async (req, res) => {
     }
 }
 
+const refreshToken = (req, res) => {
+    try {
+        const ref_token = req.headers["auth-token"]
+        if(!ref_token){
+            return res.status(401).json({
+                status: 401,
+                message: "No refresh token provided",
+            });
+        }
+
+        jwt.verify(ref_token, process.env.REFRESH_TOKEN, (err, payload) => {
+            if(err){
+                return res.status(403).json({
+                    status: 403,
+                    message: "Invalid refresh token",
+                });
+            }
+        })
+        
+        const payload = req.payload
+        if(!payload){
+            return res.status(401).json({
+                status: 401,
+                message: "Access denied"
+            })
+        }
+        const user = {
+            userId: payload._id,
+            email: payload.email,
+            name: payload.name,
+            lastName: payload.lastName,
+            userName: payload.userName,
+            description: payload.description,
+            age: payload.age,
+            imgProfile: payload.imgProfile,
+            privacy: payload.privacy
+        }
+        const new_token = generateToken(user, false)
+        const new_refresh_token = generateToken(user, true)
+
+        return res.status(200).json({
+            status: 200,
+            message: "Refresh token generated",
+            data:{
+                token: new_token,
+                refresh_token: new_refresh_token
+            }
+        })
+        
+    } catch (error) {
+        res.status(401).json({
+            status: 401,
+            message: "Error refreshing tokens",
+            error: error.message
+        }) 
+    }
+}
+
 const addNewUser = async (req, res) => {
     try {
         const {userName, name, lastName, email, password, age, genre} = req.body
@@ -139,4 +199,4 @@ const getAllUsers = async (req, res) =>{
     }
 }
 
-module.exports = {getAllUsers, loginUsers, addNewUser, updateUserData}
+module.exports = {getAllUsers, loginUsers, addNewUser, updateUserData, refreshToken}
