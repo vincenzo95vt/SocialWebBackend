@@ -53,7 +53,12 @@ const loginUsers = async (req, res) => {
                     age: user.age,
                     genre: user.genre,
                     imgProfile: user.imgProfile,
-                    description: user.description
+                    description: user.description,
+                    followers: user.followers,
+                    following: user.following,
+                    myLists: user.myLists,
+                    email: user.email,
+                    privacy: user.privacy
                 }
                 const token = generateToken(payload, false)
                 const token_refresh = generateToken(payload, true)
