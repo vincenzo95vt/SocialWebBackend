@@ -1,8 +1,8 @@
 const Users = require("../models/userSchema")
+const Posts = require("../models/postSchema")
 const bcrypt = require("bcrypt")
 const jwt = require("jsonwebtoken")
 const { generateToken } = require("../utils/utils")
-const { error } = require("console")
 
 const updateUserData = async (req, res) =>{
     try {
@@ -45,6 +45,15 @@ const loginUsers = async (req, res) => {
         if(user){
             const validatePassword = await bcrypt.compare(password, user.password)
             if(validatePassword){
+                 const postsData = await Posts.find({
+                    _id: { $in: user.posts } 
+                }).select('postName description'); 
+
+                const transformedPosts = postsData.map(post => ({
+                    _id: { "$oid": post._id },  
+                    postName: post.postName,
+                    description: post.description
+                }));
                 const payload = {
                     userId: user._id,
                     userName: user.userName,
@@ -58,7 +67,8 @@ const loginUsers = async (req, res) => {
                     following: user.following,
                     myLists: user.myLists,
                     email: user.email,
-                    privacy: user.privacy
+                    privacy: user.privacy,
+                    posts: transformedPosts,
                 }
                 const token = generateToken(payload, false)
                 const token_refresh = generateToken(payload, true)

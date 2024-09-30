@@ -62,6 +62,12 @@ const userSchema = new mongoose.Schema({
         enum: ["private", "public"],
         default: "public"
     },
+    posts:[
+        {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "Posts",
+        }
+    ],
     myLists: [ 
         {
             name: { 
