@@ -47,12 +47,13 @@ const loginUsers = async (req, res) => {
             if(validatePassword){
                  const postsData = await Posts.find({
                     _id: { $in: user.posts } 
-                }).select('postName description'); 
+                }).select('postName post'); 
 
                 const transformedPosts = postsData.map(post => ({
-                    _id: { "$oid": post._id },  
+                    _id: { "$oid": post._id },
+                    postPath: post.post,
                     postName: post.postName,
-                    description: post.description
+                    
                 }));
                 const payload = {
                     userId: user._id,
