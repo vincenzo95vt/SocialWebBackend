@@ -120,15 +120,14 @@ const refreshToken = (req, res) => {
                     message: "Invalid refresh token",
                 });
             }
+
+            if (!payload) {
+                return res.status(401).json({
+                    status: 401,
+                    message: "Access denied"
+                });
+            }
         })
-        
-        const payload = req.payload
-        if(!payload){
-            return res.status(401).json({
-                status: 401,
-                message: "Access denied"
-            })
-        }
         const user = {
             userId: payload._id,
             email: payload.email,
