@@ -214,4 +214,42 @@ const getAllUsers = async (req, res) =>{
     }
 }
 
-module.exports = {getAllUsers, loginUsers, addNewUser, updateUserData, refreshToken}
+const addNewList = async (req, res) => {
+    try {
+        const userId = req.payload.userId
+        const {name, postId} = req.body 
+        const user = await Users.findById(userId)
+        if(!user){
+            res.status(400).json({
+                message: "User not found"
+            })
+        }else{
+            if(postId){
+                const newList = {
+                    name: name,
+                    favouritePosts: [postId],
+                }
+                user.myLists.push(newList)
+                await user.save()
+            }else{
+                const newList= {
+                    name: name,
+                    favouritePosts: []
+                }
+                user.myLists.push(newList)
+                await user.save()
+            }
+            res.status(200).json({
+                status: 200,
+                message: "List created successfully"
+            })
+        }
+    } catch (error) {
+        res.status(400).json({
+            message: "Error adding list",
+            error: error.message
+        })
+    }
+}
+
+module.exports = {getAllUsers, loginUsers, addNewUser, updateUserData, refreshToken, addNewList}

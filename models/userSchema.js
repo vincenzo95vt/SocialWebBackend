@@ -65,7 +65,7 @@ const userSchema = new mongoose.Schema({
     posts:[
         {
             type: mongoose.Schema.Types.ObjectId,
-            ref: "Posts",
+            ref: "Post",
         }
     ],
     myLists: [ 
@@ -74,14 +74,10 @@ const userSchema = new mongoose.Schema({
                 type: String,
                 required: true,
             },
-            description: { 
-                type: String,
-                required: true,
-            },
             favouritePosts: [
                 { 
                     type: mongoose.Schema.Types.ObjectId,
-                    ref: "Products",
+                    ref: "Post",
                 }
             ],
         }
