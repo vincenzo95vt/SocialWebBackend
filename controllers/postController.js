@@ -1,6 +1,4 @@
-const { model } = require("mongoose")
 const Post = require("../models/postSchema")
-const { post } = require("../routers/postRouters")
 
 const getAllPosts = async (req, res) => {
     try {
@@ -37,6 +35,7 @@ const getAllPosts = async (req, res) => {
         })
     }
 }
+
 const addNewComment = async (req, res) => {
     try {
         const userComment = req.payload.userId

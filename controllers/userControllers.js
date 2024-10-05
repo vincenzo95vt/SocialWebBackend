@@ -252,4 +252,30 @@ const addNewList = async (req, res) => {
     }
 }
 
-module.exports = {getAllUsers, loginUsers, addNewUser, updateUserData, refreshToken, addNewList}
+const getUserData = async (req, res) => {
+    try {
+        const userId = req.payload.userId
+        const user = await Users.findById(userId).select("-password")
+        if (!user) {
+            return res.status(404).json({
+                status: 404,
+                message: "User not found",
+            });
+        }
+        console.log(user)
+        return res.status(200).json({
+            status: 200,
+            message: "User data fetched successfully",
+            data: user,
+        });
+    } catch (error) {
+        console.log(error)
+        res.status(400).json({
+            status: 400,
+            message: "Error get user data",
+            error: error
+        })
+    }
+}
+
+module.exports = {getAllUsers, loginUsers, addNewUser, updateUserData, refreshToken, addNewList, getUserData}
