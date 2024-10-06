@@ -2,7 +2,10 @@ const Post = require("../models/postSchema")
 
 const getAllPosts = async (req, res) => {
     try {
-        
+        const payload = req.payload
+        if(!payload){
+            return res.status(401).json({message: "Unauthorized"})
+        }
         const posts = await Post.find()
         .populate({
             path:"userPoster",
@@ -21,6 +24,7 @@ const getAllPosts = async (req, res) => {
                 message: "No posts found",
             })
         }else{
+            console.log(posts)
             return res.status(200).json({
                 status: 200,
                 message:"Success request",
@@ -28,7 +32,7 @@ const getAllPosts = async (req, res) => {
                 })
         }
     } catch (error) {
-        return res.status(400).json({
+        return res.status(401).json({
             status: 401,
             message: "Something went wrong providing the data",
             error: error
