@@ -7,11 +7,11 @@ const { generateToken } = require("../utils/utils")
 const updateUserData = async (req, res) =>{
     try {
         const userId = req.payload.userId
-        !idUser && res.status(400).json({
+        !userId && res.status(400).json({
             message: "User not found" 
         }) 
        const {userName, name, lastName, email,  description, age, genre, myLists} = req.body
-        const updatedUser = await Users.findByIdAndUpdate(idUser, {
+        const updatedUser = await Users.findByIdAndUpdate(userId, {
             userName: userName,
             name: name,
             lastName:lastName,
@@ -282,28 +282,63 @@ const addNewList = async (req, res) => {
 
 const getUserData = async (req, res) => {
     try {
-        const userId = req.payload.userId
-        const user = await Users.findById(userId).select("-password")
+        const userId = req.payload.userId;
+
+        // Buscar el usuario sin el campo de la contraseña
+        const user = await Users.findById(userId).select("-password");
+
         if (!user) {
             return res.status(404).json({
                 status: 404,
                 message: "User not found",
             });
         }
-        console.log(user)
+
+        // Obtener los datos de los posts del usuario
+        const postsData = await Posts.find({
+            _id: { $in: user.posts }  // Asume que `user.posts` es un array de IDs de posts
+        }).select('postName post');  // Seleccionamos los campos relevantes
+
+        // Formatear los datos de los posts
+        const transformedPosts = postsData.map(post => ({
+            _id: { "$oid": post._id },
+            postPath: post.post,
+            postName: post.postName,
+        }));
+
+        // Crear el payload con los datos del usuario y los posts
+        const userData = {
+            userId: user._id,
+            userName: user.userName,
+            name: user.name,
+            lastName: user.lastName,
+            age: user.age,
+            genre: user.genre,
+            imgProfile: user.imgProfile,
+            description: user.description,
+            followers: user.followers,
+            following: user.following,
+            myLists: user.myLists,
+            email: user.email,
+            privacy: user.privacy,
+            posts: transformedPosts,  // Incluir los posts transformados
+        };
+
         return res.status(200).json({
             status: 200,
             message: "User data fetched successfully",
-            data: user,
+            data: userData,
         });
     } catch (error) {
-        console.log(error)
-        res.status(400).json({
+        console.log(error);
+        return res.status(400).json({
             status: 400,
             message: "Error get user data",
-            error: error
-        })
+            error: error.message
+        });
     }
-}
+};
+
+
 
 module.exports = {getAllUsers, loginUsers, addNewUser, updateUserData, refreshToken, addNewList, getUserData, addPostToList}

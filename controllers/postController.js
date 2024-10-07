@@ -67,4 +67,40 @@ const addNewComment = async (req, res) => {
     }
 }
 
-module.exports = {getAllPosts, addNewComment}
+const getPostById = async(req, res)  => {
+    try {
+        const postId = req.params.postId
+        const post = await Post.findById(postId).populate({
+            path:"userPoster",
+            select:"userName imgProfile"
+        })
+        .populate({
+            path: "comments",
+            populate:{
+                path: "usuario",
+                model:"Users",
+                select:"userName"
+            }
+        })
+        if(!post){
+            return res.status(400).json({
+                status: 400,
+                message: "Post not found",
+            })
+        } else{
+            return res.status(200).json({
+                status: 200,
+                message: "Post found",
+                data: post
+            })
+        }
+    } catch (error) {
+       return res.status(400).json({
+            status: 400,
+            message: "Error get user data",
+            error: error
+        })
+    }
+}
+
+module.exports = {getAllPosts, addNewComment, getPostById}
