@@ -283,8 +283,6 @@ const addNewList = async (req, res) => {
 const getUserData = async (req, res) => {
     try {
         const userId = req.payload.userId;
-
-        // Buscar el usuario sin el campo de la contraseña
         const user = await Users.findById(userId).select("-password");
 
         if (!user) {
@@ -294,19 +292,16 @@ const getUserData = async (req, res) => {
             });
         }
 
-        // Obtener los datos de los posts del usuario
         const postsData = await Posts.find({
-            _id: { $in: user.posts }  // Asume que `user.posts` es un array de IDs de posts
-        }).select('postName post');  // Seleccionamos los campos relevantes
+            _id: { $in: user.posts }  
+        }).select('postName post');  
 
-        // Formatear los datos de los posts
         const transformedPosts = postsData.map(post => ({
             _id: { "$oid": post._id },
             postPath: post.post,
             postName: post.postName,
         }));
 
-        // Crear el payload con los datos del usuario y los posts
         const userData = {
             userId: user._id,
             userName: user.userName,
@@ -339,6 +334,30 @@ const getUserData = async (req, res) => {
     }
 };
 
+const findUserByName = async (req, res) => {
+    try {
+        const name = req.params.name
+        const user = await Users.find({userName: { $regex: new RegExp(name, "i") }}).select("-password")
+        if(!user || user.length === 0){
+            return res.status(404).json({
+                status: 404,
+                message: "User not found",
+                });
+        }else{
+            return res.status(200).json({
+                status: 200,
+                message: "User found",
+                data: user
+            })
+        }
+    } catch (error) {
+        return res.status(400).json({
+            status: 400,
+            message: "Error get user data",
+            error: error.message
+        });
+    }
+}
 
 
-module.exports = {getAllUsers, loginUsers, addNewUser, updateUserData, refreshToken, addNewList, getUserData, addPostToList}
+module.exports = {getAllUsers, loginUsers, addNewUser, updateUserData, refreshToken, addNewList, getUserData, addPostToList, findUserByName}
