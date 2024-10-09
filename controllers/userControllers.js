@@ -336,28 +336,65 @@ const getUserData = async (req, res) => {
 
 const findUserByName = async (req, res) => {
     try {
-        const name = req.params.name
-        const user = await Users.find({userName: { $regex: new RegExp(name, "i") }}).select("-password")
-        if(!user || user.length === 0){
+        const name = req.params.name;
+        const users = await Users.find({
+            userName: { $regex: new RegExp(name, "i") }
+        }).select("-password");
+
+        if (!users || users.length === 0) {
             return res.status(404).json({
                 status: 404,
                 message: "User not found",
-                });
-        }else{
-            return res.status(200).json({
-                status: 200,
-                message: "User found",
-                data: user
-            })
+            });
         }
+
+        const usersWithPosts = await Promise.all(users.map(async (user) => {
+            const postsData = await Posts.find({
+                _id: { $in: user.posts }
+            }).select('postName post');
+
+            const transformedPosts = postsData.map(post => ({
+                _id: { "$oid": post._id },
+                postPath: post.post,
+                postName: post.postName,
+            }));
+
+            // Crear el objeto del usuario con sus posts
+            return {
+                userId: user._id,
+                userName: user.userName,
+                name: user.name,
+                lastName: user.lastName,
+                age: user.age,
+                genre: user.genre,
+                imgProfile: user.imgProfile,
+                description: user.description,
+                followers: user.followers,
+                following: user.following,
+                myLists: user.myLists,
+                email: user.email,
+                privacy: user.privacy,
+                posts: transformedPosts,
+            };
+        }));
+
+        // Responder con el arreglo de usuarios
+        return res.status(200).json({
+            status: 200,
+            message: "Users found",
+            data: usersWithPosts, // Devuelve el arreglo de usuarios con sus posts
+        });
+        
     } catch (error) {
         return res.status(400).json({
             status: 400,
-            message: "Error get user data",
+            message: "Error getting user data",
             error: error.message
         });
     }
-}
+};
+
+
 
 
 module.exports = {getAllUsers, loginUsers, addNewUser, updateUserData, refreshToken, addNewList, getUserData, addPostToList, findUserByName}
