@@ -394,7 +394,57 @@ const findUserByName = async (req, res) => {
     }
 };
 
+const followUser = async (req, res) => {
+    try {
+        const userId = req.payload.userId
+        const userFollowedId = req.params.id
+        if(userId === userFollowedId){
+            return res.status(400).json({
+                status: 400,
+                message: "You can't follow yourself",
+                });
+        }
+
+        const updatedUser = await Users.findByIdAndUpdate(userId,
+            {$addToSet: {following: userFollowedId}},
+            {new: true}    
+        ).populate({
+            path:"posts",
+            populate: "post postName"
+        })
+        if(!updatedUser){
+            return res.status(404).json({
+                status: 404,
+                message: "User not found",
+            });
+        }
+        
+        const updateFollowedUser = await Users.findByIdAndUpdate(userFollowedId,
+            {$addToSet: {followers: userId}},
+            {new: true}
+        )
+        if(!updateFollowedUser){
+            return res.status(404).json({
+                status: 404,
+                message: "User not found",
+            });
+        }
+        return res.status(200).json({
+            status: 200,
+            message: "User followed successfully",
+            data: updatedUser,
+        });
+
+    } catch (error) {
+        return res.status(400).json({
+            status: 400,
+            message: "Error following user",
+            error: error.message
+        });
+    }
+}
 
 
 
-module.exports = {getAllUsers, loginUsers, addNewUser, updateUserData, refreshToken, addNewList, getUserData, addPostToList, findUserByName}
+
+module.exports = {getAllUsers, loginUsers, addNewUser, updateUserData, refreshToken, addNewList, getUserData, addPostToList, findUserByName, followUser}
