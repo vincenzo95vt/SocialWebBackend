@@ -103,4 +103,37 @@ const getPostById = async(req, res)  => {
     }
 }
 
-module.exports = {getAllPosts, addNewComment, getPostById}
+const deletePostById = async (req, res) => {
+    try {
+        const userId = req.payload.userId || req.payload._id
+        const postId = req.params.postId;
+        const post = await Post.findById(postId)
+        if (!post){
+            return res.status(400).json({
+                status: 400,
+                message:"post not found",
+                })
+        }else{
+            if(post.userPoster.toString() !== userId.toString()){
+                return res.status(400).json({
+                    status: 400,
+                    message: "You cannot delete this post",
+                })
+            }else{
+                await Post.findByIdAndDelete(postId)
+                return res.status(200).json({
+                    status: 200,
+                    message: "Post deleted successfully",
+                })
+            }
+        }
+    } catch (error) {
+        return res.status(400).json({
+            status: 400,
+            message: "Error get user data",
+            error: error
+        })
+    }
+}
+
+module.exports = {getAllPosts, addNewComment, getPostById, deletePostById}
