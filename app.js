@@ -13,7 +13,7 @@ const db = mongoose.connection
 
 const userRouters = require("./routers/userRouters")
 const postRouters = require("./routers/postRouters")
-
+const followRequestsRouters = require("./routers/followRequestRouters")
 
 db.on("error", (error) => {
     console.error("Error to connect")
@@ -26,7 +26,7 @@ db.once("connected", () => {
 db.on("disconnected", (error) => {
     console.error("mongoose default connection is disconnected")
 })
-
+app.use("/followRequests", followRequestsRouters)
 app.use("/users", userRouters)
 app.use("/posts", postRouters)
 app.listen(PORT, () =>{

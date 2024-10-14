@@ -336,6 +336,7 @@ const getUserData = async (req, res) => {
 
 const findUserByName = async (req, res) => {
     try {
+        const following = req.payload.following
         const name = req.params.name;
         const users = await Users.find({
             userName: { $regex: new RegExp(name, "i") }
@@ -349,40 +350,55 @@ const findUserByName = async (req, res) => {
         }
 
         const usersWithPosts = await Promise.all(users.map(async (user) => {
-            const postsData = await Posts.find({
-                _id: { $in: user.posts }
-            }).select('postName post');
-
-            const transformedPosts = postsData.map(post => ({
-                _id: { "$oid": post._id },
-                postPath: post.post,
-                postName: post.postName,
-            }));
-
-            // Crear el objeto del usuario con sus posts
-            return {
-                userId: user._id,
-                userName: user.userName,
-                name: user.name,
-                lastName: user.lastName,
-                age: user.age,
-                genre: user.genre,
-                imgProfile: user.imgProfile,
-                description: user.description,
-                followers: user.followers,
-                following: user.following,
-                myLists: user.myLists,
-                email: user.email,
-                privacy: user.privacy,
-                posts: transformedPosts,
-            };
+            if(user.privacy === "private" && !following.includes(user._id)){
+                return {
+                    userId: user._id,
+                    userName: user.userName,
+                    name: user.name,
+                    lastName: user.lastName,
+                    age: user.age,
+                    genre: user.genre,
+                    imgProfile: user.imgProfile,
+                    description: user.description,
+                    followers: user.followers,
+                    following: user.following,
+                    email: user.email,
+                    privacy:user.privacy
+                }
+            }else{
+                const postsData = await Posts.find({
+                    _id: { $in: user.posts }
+                }).select('postName post');
+    
+                const transformedPosts = postsData.map(post => ({
+                    _id: { "$oid": post._id },
+                    postPath: post.post,
+                    postName: post.postName,
+                }));
+    
+                return {
+                    userId: user._id,
+                    userName: user.userName,
+                    name: user.name,
+                    lastName: user.lastName,
+                    age: user.age,
+                    genre: user.genre,
+                    imgProfile: user.imgProfile,
+                    description: user.description,
+                    followers: user.followers,
+                    following: user.following,
+                    myLists: user.myLists,
+                    email: user.email,
+                    privacy: user.privacy,
+                    posts: transformedPosts,
+                };
+            }
         }));
 
-        // Responder con el arreglo de usuarios
         return res.status(200).json({
             status: 200,
             message: "Users found",
-            data: usersWithPosts, // Devuelve el arreglo de usuarios con sus posts
+            data: usersWithPosts, 
         });
         
     } catch (error) {
@@ -404,36 +420,43 @@ const followUser = async (req, res) => {
                 message: "You can't follow yourself",
                 });
         }
-
-        const updatedUser = await Users.findByIdAndUpdate(userId,
-            {$addToSet: {following: userFollowedId}},
-            {new: true}    
-        ).populate({
-            path:"posts",
-            populate: "post postName"
-        })
-        if(!updatedUser){
-            return res.status(404).json({
-                status: 404,
-                message: "User not found",
+        const updatedUser = await Users.findById(userId)
+        if(updatedUser.privacy === "public"){
+            const updatedPublicUser = await Users.findByIdAndUpdate(userId,
+                {$addToSet: {following: userFollowedId}},
+                {new: true}    
+            ).populate({
+                path:"posts",
+                populate: "post postName"
+            })
+            if(!updatedPublicUser){
+                return res.status(404).json({
+                    status: 404,
+                    message: "User not found",
+                });
+            }
+            
+            const updateFollowedUser = await Users.findByIdAndUpdate(userFollowedId,
+                {$addToSet: {followers: userId}},
+                {new: true}
+            )
+            if(!updateFollowedUser){
+                return res.status(404).json({
+                    status: 404,
+                    message: "User not found",
+                });
+            }
+            return res.status(200).json({
+                status: 200,
+                message: "User followed successfully",
+                data: updatedPublicUser,
             });
+        }else{
+            return res.status(400).json({
+                status: 400,
+                message: "User privacy is set to private, manage this with other endpoint",
+                });
         }
-        
-        const updateFollowedUser = await Users.findByIdAndUpdate(userFollowedId,
-            {$addToSet: {followers: userId}},
-            {new: true}
-        )
-        if(!updateFollowedUser){
-            return res.status(404).json({
-                status: 404,
-                message: "User not found",
-            });
-        }
-        return res.status(200).json({
-            status: 200,
-            message: "User followed successfully",
-            data: updatedUser,
-        });
 
     } catch (error) {
         return res.status(400).json({
@@ -447,4 +470,5 @@ const followUser = async (req, res) => {
 
 
 
-module.exports = {getAllUsers, loginUsers, addNewUser, updateUserData, refreshToken, addNewList, getUserData, addPostToList, findUserByName, followUser}
+module.exports = {getAllUsers, loginUsers, addNewUser, updateUserData, refreshToken, addNewList, 
+                    getUserData, addPostToList, findUserByName, followUser}

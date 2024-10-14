@@ -9,7 +9,7 @@ const getAllPosts = async (req, res) => {
         const posts = await Post.find()
         .populate({
             path:"userPoster",
-            select:"userName imgProfile"
+            select:"userName imgProfile privacy followers"
         })
         .populate({
             path: "comments",
@@ -23,14 +23,21 @@ const getAllPosts = async (req, res) => {
             return res.status(200).json({
                 message: "No posts found",
             })
-        }else{
-            console.log(posts)
-            return res.status(200).json({
-                status: 200,
-                message:"Success request",
-                posts: posts
-                })
         }
+
+        const filteredPosts = posts.filter(post => {
+            const userPoster = post.userPoster;
+            if (userPoster.privacy === "private") {
+                return userPoster.followers.includes(payload.userId);
+            }
+            return true;
+        });
+        return res.status(200).json({
+            status: 200,
+            message:"Success request",
+            posts: filteredPosts
+            })
+        
     } catch (error) {
         return res.status(401).json({
             status: 401,
