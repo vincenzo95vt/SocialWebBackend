@@ -6,21 +6,23 @@ const { generateToken } = require("../utils/utils")
 
 const updateUserData = async (req, res) =>{
     try {
-        const userId = req.payload.userId
+        const userId = req.payload.userId || req.payload._id
         !userId && res.status(400).json({
             message: "User not found" 
         }) 
-       const {userName, name, lastName, email,  description, age, genre, myLists} = req.body
+       const values = req.body
+       console.log(values)
         const updatedUser = await Users.findByIdAndUpdate(userId, {
-            userName: userName,
-            name: name,
-            lastName:lastName,
-            email: email,
-            description:description,
-            age:age,
-            genre:genre,
-            myLists:myLists
+            $set: values
+        },
+        {
+            new: true,
+            runValidators: true
+        }).populate({
+            path:"posts",
+            populate: "post postName"
         })
+        
        res.status(200).json({
         status:200, 
         message: "User updated successfully",

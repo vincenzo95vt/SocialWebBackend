@@ -12,7 +12,7 @@ router.post("/login", loginUsers)
 router.post("/signUp", addNewUser)
 router.patch("/addNewList", verifyToken, addNewList)
 router.patch("/addPostToList/:listId", verifyToken, addPostToList)
-router.patch("/updateProfile", verifyToken ,updateUserData)
+router.patch("/", verifyToken ,updateUserData)
 
 
 module.exports = router
