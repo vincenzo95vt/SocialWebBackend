@@ -21,11 +21,12 @@ const sendFollowrequest = async (req, res) => {
         const followRequest = new FollowRequest({
             requester: requesterId,
             recipient: recipientId,
+            status:"pending"
         })
         await followRequest.save()
         return res.status(200).json({
             message: 'Follow request sent successfully',
-            followRequest
+            data: followRequest
         });
     } catch (error) {
         return res.status(500).json({
@@ -37,7 +38,7 @@ const sendFollowrequest = async (req, res) => {
 
 const acceptFollowRequest = async (req, res) => {
     try {
-        const {requestId} = req.body
+        const requestId = req.params.id
 
         const followRequest = await FollowRequest.findById(requestId)
 
@@ -50,12 +51,26 @@ const acceptFollowRequest = async (req, res) => {
         } 
         followRequest.status = "accepted"
         await followRequest.save()
+
         const recipient = await User.findById(followRequest.recipient);
+
         recipient.followers.push(followRequest.requester);
+
         await recipient.save();
+
+        const requester = await User.findById(followRequest.requester)
+
+        requester.following.push(followRequest.recipient)
+
+        await requester.save()
+        const fqInfo = {
+            info: followRequest,
+            recipient: recipient.followers,
+            requester: requester.following
+        }
         return res.status(200).json({
             message: 'Follow request accepted',
-            followRequest
+            data: fqInfo
         });
     } catch (error) {
         return res.status(500).json({
@@ -67,7 +82,7 @@ const acceptFollowRequest = async (req, res) => {
 
 const rejectFollowRequest = async (req, res) => {
     try {
-        const { requestId } = req.body; 
+        const requestId = req.params.id
 
         const followRequest = await FollowRequest.findById(requestId);
 

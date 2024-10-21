@@ -6,7 +6,7 @@ const router = require("express").Router()
 
 router.get("/", verifyToken, getFollowRequests)
 router.post("/:id", verifyToken, sendFollowrequest)
-router.post("/accept", verifyToken, acceptFollowRequest)
-router.post("/reject", verifyToken, rejectFollowRequest)
+router.post("/:id/accept", verifyToken, acceptFollowRequest)
+router.post("/:id/reject", verifyToken, rejectFollowRequest)
 
 module.exports = router

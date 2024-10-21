@@ -175,6 +175,7 @@ const addNewUser = async (req, res) => {
             genre: genre
         })
     await user.save()
+    console.log(user)
     res.status(200).json({
         status:200,
         message:"User created succesfully"
@@ -422,7 +423,7 @@ const followUser = async (req, res) => {
                 message: "You can't follow yourself",
                 });
         }
-        const updatedUser = await Users.findById(userId)
+        const updatedUser = await Users.findById(userFollowedId)
         if(updatedUser.privacy === "public"){
             const updatedPublicUser = await Users.findByIdAndUpdate(userId,
                 {$addToSet: {following: userFollowedId}},
