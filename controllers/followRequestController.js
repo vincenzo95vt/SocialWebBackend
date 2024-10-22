@@ -1,11 +1,15 @@
 const FollowRequest = require("../models/followRequestSchema")
+const Users = require("../models/userSchema")
 const User = require("../models/userSchema")
 
 const sendFollowrequest = async (req, res) => {
     try {
         const recipientId = req.params.id
         const requesterId = req.payload.userId
-
+        const user = await Users.findById(requesterId)
+        if(user.followers.includes(recipientId)){
+            return res.status(400).json({message: "You already follow this user."})
+        }
         if(!recipientId){
             return res.status(400).json({message: "Recipient ID is required."})
         }
@@ -68,6 +72,7 @@ const acceptFollowRequest = async (req, res) => {
             recipient: recipient.followers,
             requester: requester.following
         }
+        
         return res.status(200).json({
             message: 'Follow request accepted',
             data: fqInfo

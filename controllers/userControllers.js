@@ -353,7 +353,8 @@ const findUserByName = async (req, res) => {
         }
 
         const usersWithPosts = await Promise.all(users.map(async (user) => {
-            if(user.privacy === "private" && !following.includes(user._id)){
+            console.log(user)
+            if(user.privacy === "private" && following.includes(user._id)){
                 return {
                     userId: user._id,
                     userName: user.userName,
@@ -397,7 +398,7 @@ const findUserByName = async (req, res) => {
                 };
             }
         }));
-
+        console.log(usersWithPosts)
         return res.status(200).json({
             status: 200,
             message: "Users found",
