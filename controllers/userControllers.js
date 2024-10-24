@@ -75,6 +75,7 @@ const loginUsers = async (req, res) => {
                 }
                 const token = generateToken(payload, false)
                 const token_refresh = generateToken(payload, true)
+                console.log(payload)
                 return res.status(200).json({
                     status: 200,
                     message: "User logged successfully",
@@ -300,13 +301,13 @@ const getUserData = async (req, res) => {
         }).select('postName post');  
 
         const transformedPosts = postsData.map(post => ({
-            _id: { "$oid": post._id },
+            _id: { "$oid": post._id},
             postPath: post.post,
             postName: post.postName,
         }));
 
         const userData = {
-            userId: user._id,
+            userId: user._id || user.userId,
             userName: user.userName,
             name: user.name,
             lastName: user.lastName,
@@ -319,7 +320,7 @@ const getUserData = async (req, res) => {
             myLists: user.myLists,
             email: user.email,
             privacy: user.privacy,
-            posts: transformedPosts,  // Incluir los posts transformados
+            posts: transformedPosts,  
         };
 
         return res.status(200).json({
@@ -471,8 +472,80 @@ const followUser = async (req, res) => {
     }
 }
 
+const getUserById = async (req, res) => {
+    try {
+        const following = req.payload.following
+        const userFoundId = req.params.id
+        const userFoundInfo = await Users.findById(userFoundId)
+        if(!userFoundInfo){
+            return res.status(404).json({
+                status: 404,
+                message: "User not found",
+            });
+        }
+        if(userFoundInfo.privacy === "private" && following.includes(userFoundId)){
+            const userDataPrivate =  {
+                userId: userFoundInfo._id,
+                userName: userFoundInfo.userName,
+                name: userFoundInfo.name,
+                lastName: userFoundInfo.lastName,
+                age: userFoundInfo.age,
+                genre: userFoundInfo.genre,
+                imgProfile: userFoundInfo.imgProfile,
+                description: userFoundInfo.description,
+                followers: userFoundInfo.followers,
+                following: userFoundInfo.following,
+                email: userFoundInfo.email,
+                privacy:userFoundInfo.privacy
+            }
+            return res.status(200).json({
+                status: 200,
+                message: "User found",
+                data: userDataPrivate
+            })
+        }else{
+            const postsData = await Posts.find({
+                _id: { $in: userFoundInfo.posts }
+            }).select('postName post');
 
+            const transformedPosts = postsData.map(post => ({
+                _id: { "$oid": post._id },
+                postPath: post.post,
+                postName: post.postName,
+            }));
+
+            const userDataPublic = {
+                userId: userFoundInfo._id,
+                userName: userFoundInfo.userName,
+                name: userFoundInfo.name,
+                lastName: userFoundInfo.lastName,
+                age: userFoundInfo.age,
+                genre: userFoundInfo.genre,
+                imgProfile: userFoundInfo.imgProfile,
+                description: userFoundInfo.description,
+                followers: userFoundInfo.followers,
+                following: userFoundInfo.following,
+                myLists: userFoundInfo.myLists,
+                email: userFoundInfo.email,
+                privacy: userFoundInfo.privacy,
+                posts: transformedPosts,
+            };
+            return res.status(200).json({
+                status: 200,
+                message: "User found",
+                data: userDataPublic
+            })
+        }
+        
+    } catch (error) {
+        return res.status(400).json({
+            status: 400,
+            message: "Error geting user data",
+            error: error.message
+        });
+    }
+}
 
 
 module.exports = {getAllUsers, loginUsers, addNewUser, updateUserData, refreshToken, addNewList, 
-                    getUserData, addPostToList, findUserByName, followUser}
+                    getUserData, addPostToList, findUserByName, followUser, getUserById}
