@@ -137,10 +137,51 @@ const deletePostById = async (req, res) => {
     } catch (error) {
         return res.status(400).json({
             status: 400,
-            message: "Error get user data",
+            message: "Error get post data",
             error: error
         })
     }
 }
 
-module.exports = {getAllPosts, addNewComment, getPostById, deletePostById}
+const updatePost = async (req, res) => {
+    try {
+        const userId = req.payload.userId
+        const postId = req.params.id
+        const {description, postName} = req.body
+        const post = await Post.findById(postId)
+
+        if(!post){
+            return res.status(404).json({message: "Post not found"})
+        }
+
+        if(post.userPoster !== userId){
+            return res.status(400).json({message: "You cannot update this post"})
+        }
+
+        const updatedPost = await Post.findByIdAndUpdate(postId, {
+            description: description,
+            postName: postName
+        }).populate({
+            path: "comments",
+            populate:{
+                path: "usuario",
+                model:"Users",
+                select:"userName"
+            }
+        })
+        await updatePost.save()
+        return res.status(200).json({
+            status: 200,
+            message: "Post updated successfully",
+            data: updatedPost    
+        })
+    } catch (error) {
+        return res.status(400).json({
+            status: 400,
+            message: "Error updating post data",
+            error: error
+        })
+    }
+}
+
+module.exports = {getAllPosts, addNewComment, getPostById, deletePostById, updatePost}
