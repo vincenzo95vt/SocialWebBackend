@@ -166,6 +166,25 @@ const refreshToken = (req, res) => {
 const addNewUser = async (req, res) => {
     try {
         const {userName, name, lastName, email, password, age, genre} = req.body
+        const userAlready = await Users.find({
+            $or:[{email: email}, {userName: userName}]
+        });
+        if(userAlready.length > 0){
+            const isEmailDuplicate = userAlready.some(user => user.email === email);
+            const isUserDuplicate = userAlready.some(user => user.userName === userName);
+            let message = ""; 
+            if(isEmailDuplicate && isUserDuplicate){
+                message = "Email and username already exist"
+            } else if(isEmailDuplicate){
+                message = "Email already exist"
+            } else if(isUserDuplicate){
+                message = "Username already exist"
+            }
+            return res.status(400).json({
+                status: 400,
+                message: message
+                })
+        }
         const user =  new Users({
             userName: userName,
             name: name,
@@ -287,6 +306,7 @@ const addNewList = async (req, res) => {
 const getUserData = async (req, res) => {
     try {
         const userId = req.payload.userId;
+        console.log("aqui", userId)
         const user = await Users.findById(userId).select("-password");
 
         if (!user) {
@@ -332,7 +352,7 @@ const getUserData = async (req, res) => {
         console.log(error);
         return res.status(400).json({
             status: 400,
-            message: "Error get user data",
+            message: "Error getting user data",
             error: error.message
         });
     }

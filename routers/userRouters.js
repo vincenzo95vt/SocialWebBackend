@@ -4,8 +4,8 @@ const { verifyToken } = require("../middlewares/auth")
 
 
 router.get("/", getAllUsers)
-router.get("/:id", verifyToken, getUserById)
 router.get("/refreshUserData", verifyToken, getUserData)
+router.get("/:id", verifyToken, getUserById)
 router.get("/findUserByName/:name", verifyToken, findUserByName)
 router.post("/refreshToken", refreshToken)
 router.post("/followUser/:id", verifyToken, followUser)
