@@ -305,7 +305,7 @@ const addNewList = async (req, res) => {
 
 const getUserData = async (req, res) => {
     try {
-        const userId = req.payload.userId;
+        const userId = req.payload._id || req.payload.userId;
         console.log("aqui", userId)
         const user = await Users.findById(userId).select("-password");
 
