@@ -26,6 +26,9 @@ db.once("connected", () => {
 db.on("disconnected", (error) => {
     console.error("mongoose default connection is disconnected")
 })
+app.get('/', (req, res) => {
+    res.send('Servidor funcionando correctamente');
+  });
 app.use("/followRequests", followRequestsRouters)
 app.use("/users", userRouters)
 app.use("/posts", postRouters)
